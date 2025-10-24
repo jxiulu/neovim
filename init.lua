@@ -88,7 +88,7 @@ local maybegreen = "#c6ffd0"
 -- PLUGINS
 require("lazy").setup({
 	-- THEMES
-	{ "EdenEast/nightfox.nvim" },
+	{ "joshdick/onedark.vim" },
 	{
 		dir = "/Users/jerrylu/Documents/Projects/mytheme",
 		name = "mytheme",
@@ -433,67 +433,82 @@ require("lazy").setup({
 	},
 
 	-- LSP Core + Installer
-	{ "williamboman/mason.nvim", build = ":MasonUpdate", opts = {} },
-	-- {
-	-- 	"williamboman/mason-lspconfig.nvim",
-	-- 	dependencies = { "mason.nvim" },
-	-- 	opts = {
-	-- 		ensure_installed = { "clangd", "cmake" },
-	-- 		automatic_installation = true,
-	-- 	},
-	-- },
 	{
-		"neovim/nvim-lspconfig",
-		dependencies = { "hrsh7th/cmp-nvim-lsp" },
-		config = function()
+		"williamboman/mason.nvim",
+		build = ":MasonUpdate",
+		opts = {},
+		config = function(_, opts)
+			require("mason").setup(opts)
+		end,
+	},
+	{
+		"williamboman/mason-lspconfig.nvim",
+		dependencies = {
+			"williamboman/mason.nvim",
+			"neovim/nvim-lspconfig",
+			"hrsh7th/cmp-nvim-lsp",
+		},
+		opts = function()
 			local lspconfig = require("lspconfig")
+			local util = require("lspconfig.util")
 			local capabilities = require("cmp_nvim_lsp").default_capabilities()
 			capabilities.textDocument.completion.completionItem.snippetSupport = false
 
-			-- C/C++: clangd
-			-- Tip: If your project has compile_commands.json, clangd will use it (best results).
-			lspconfig.clangd.setup({
-				capabilities = capabilities,
+			local base_opts = {
 				on_attach = lsp_on_attach,
-				cmd = {
-					"clangd",
-					"--header-insertion=never",
-					"--completion-style=detailed",
-					"--background-index",
-					-- Remove --clang-tidy to speed up
-					-- Add offset encoding to avoid warnings
-					"--offset-encoding=utf-16",
-					-- Disable function argument snippets
-					"--function-arg-placeholders=false",
-				},
-				init_options = {
-					clangdFileStatus = true,
-					-- Disable parameter hints in clangd itself
-					fallbackFlags = { "-Xclang", "-code-completion-brief-comments" },
-				},
-				-- Increase timeout
-				flags = {
-					debounce_text_changes = 150,
-				},
-				root_dir = require("lspconfig.util").root_pattern("compile_commands.json", "compile_flags.txt", ".git"),
-			})
+				capabilities = capabilities,
+			}
 
-			lspconfig.lua_ls.setup({
-				capabilities = capabilities,
-				on_attach = lsp_on_attach,
-				settings = {
-					Lua = {
-						workspace = { checkThirdParty = false },
-						diagnostics = { globals = { "vim" } },
+			local servers = {
+				clangd = {
+					cmd = {
+						"clangd",
+						"--header-insertion=never",
+						"--completion-style=detailed",
+						"--background-index",
+						"--offset-encoding=utf-16",
+						"--function-arg-placeholders=false",
+					},
+					init_options = {
+						clangdFileStatus = true,
+						fallbackFlags = { "-Xclang", "-code-completion-brief-comments" },
+					},
+					flags = {
+						debounce_text_changes = 150,
+					},
+					root_dir = util.root_pattern("compile_commands.json", "compile_flags.txt", ".git"),
+				},
+				lua_ls = {
+					settings = {
+						Lua = {
+							workspace = { checkThirdParty = false },
+							diagnostics = { globals = { "vim" } },
+						},
 					},
 				},
-			})
+				cmake = {},
+			}
 
-			lspconfig.cmake.setup({
-				capabilities = capabilities,
-				on_attach = lsp_on_attach,
-			})
+			return {
+				ensure_installed = { "clangd", "lua_ls", "cmake" },
+				automatic_installation = false,
+				handlers = {
+					function(server_name)
+						if not lspconfig[server_name] then
+							return
+						end
+						local server_opts = vim.tbl_deep_extend("force", {}, base_opts, servers[server_name] or {})
+						lspconfig[server_name].setup(server_opts)
+					end,
+				},
+			}
 		end,
+		config = function(_, opts)
+			require("mason-lspconfig").setup(opts)
+		end,
+	},
+	{
+		"neovim/nvim-lspconfig",
 	},
 
 	-- Autocomplete
@@ -587,32 +602,6 @@ require("lazy").setup({
 		config = true,
 	},
 
-	-- Neotree
-	{
-		"nvim-neo-tree/neo-tree.nvim",
-		branch = "v3.x",
-		dependencies = {
-			"nvim-lua/plenary.nvim",
-			"MunifTanjim/nui.nvim",
-			"nvim-tree/nvim-web-devicons", -- optional, but recommended
-		},
-		cmd = { "Neotree" },
-		keys = {
-			{ "<leader>e", "<cmd>Neotree toggle<cr>", desc = "neotree" },
-		},
-		opts = {
-			filesystem = {
-				filtered_items = {
-					visible = true,
-					hide_dotfiles = false,
-					hide_gitignored = true,
-				},
-			},
-		},
-
-		hijack_netrw_behavior = "disabled",
-	},
-
 	{
 		"stevearc/oil.nvim",
 		dependencies = { { "echasnovski/mini.icons", opts = {} } },
@@ -643,26 +632,6 @@ require("lazy").setup({
 			delete_to_trash = true,
 			skip_confirm_for_simple_edits = true,
 			use_default_keymaps = true,
-			keymaps = {
-				["q"] = "actions.close",
-				["<CR>"] = "actions.select",
-				["<C-s>"] = "actions.select_split",
-				["<C-v>"] = "actions.select_vsplit",
-				["<C-t>"] = "actions.select_tab",
-				["a"] = "actions.create",
-				["r"] = "actions.rename",
-				["d"] = "actions.delete",
-				["y"] = "actions.copy_entry",
-				["m"] = "actions.move",
-				["-"] = "actions.parent",
-				["_"] = "actions.open_cwd",
-				["`"] = "actions.cd",
-				["~"] = { "actions.cd", opts = { scope = "tab" } },
-				["gs"] = "actions.change_sort",
-				["gx"] = "actions.open_external",
-				["g."] = "actions.toggle_hidden",
-				["g\\"] = "actions.toggle_trash",
-			},
 		},
 	},
 
@@ -1069,12 +1038,8 @@ require("which-key").add({
 })
 
 -- ===============================
--- CWD helpers + Neo-tree sync (v3)
--- Drop-in block for init.lua
+-- CWD helpers
 -- ===============================
-
--- Customize where your tree lives ("left" | "right" | "top" | "bottom")
-local NEOTREE_POSITION = "left"
 
 -- Preferred project root markers if no LSP root is available
 local ROOT_MARKERS = { ".git", "compile_commands.json", "CMakeLists.txt", "Makefile", "pyproject.toml", "package.json" }
@@ -1085,6 +1050,15 @@ local function notify(msg, level)
 end
 
 local function buf_dir()
+	if vim.bo.filetype == "oil" then
+		local ok, oil = pcall(require, "oil")
+		if ok then
+			local dir = oil.get_current_dir()
+			if dir then
+				return dir
+			end
+		end
+	end
 	-- Try the file's folder; fall back to current cwd if the buffer isn't a real file
 	local p = vim.api.nvim_buf_get_name(0)
 	if p == "" then
@@ -1120,30 +1094,7 @@ local function find_project_root()
 	return find_marker_root(buf_dir())
 end
 
--- Neo-tree v3: open if closed, reveal current file, and refresh filesystem source
-local function sync_neotree(position)
-	position = position or NEOTREE_POSITION
-	local ok, neocmd = pcall(require, "neo-tree.command")
-	if not ok then
-		notify("Neo-tree is not available", vim.log.levels.WARN)
-		return
-	end
-
-	-- This ensures the tree is visible and highlights the current file
-	neocmd.execute({
-		source = "filesystem",
-		position = position,
-		reveal = true, -- focus/highlight current file
-		toggle = false, -- don't toggle; force open
-	})
-
-	-- Light refresh after UI settles (avoids race conditions)
-	vim.defer_fn(function()
-		pcall(neocmd.execute, { action = "refresh", source = "filesystem" })
-	end, 20)
-end
-
--- Change CWD to a target directory (if it exists) and sync Neo-tree
+-- Change CWD to a target directory (if it exists)
 local function set_cwd(dir)
 	if not dir or dir == "" then
 		notify("No directory given", vim.log.levels.WARN)
@@ -1154,16 +1105,18 @@ local function set_cwd(dir)
 		notify("Not a directory: " .. dir, vim.log.levels.ERROR)
 		return
 	end
-	vim.fn.chdir(dir)
-	notify("CWD >> " .. dir)
-	-- Keep the tree in sync with the new cwd
-	sync_neotree()
+	local ok, err = pcall(vim.cmd, "noautocmd cd " .. vim.fn.fnameescape(dir))
+	if not ok then
+		notify("Failed to change CWD: " .. err, vim.log.levels.ERROR)
+		return
+	end
+	notify("CWD >> " .. vim.loop.cwd())
 end
 
 -- Public actions / keymaps
 vim.keymap.set("n", "<leader>ed", function()
 	set_cwd(buf_dir())
-end, { desc = "CWD: parent of current file + open Neo-tree" })
+end, { desc = "CWD: parent of current file" })
 
 vim.keymap.set("n", "<leader>er", function()
 	local root = find_project_root()
@@ -1172,7 +1125,7 @@ vim.keymap.set("n", "<leader>er", function()
 	else
 		notify("No project root found (checked LSP & markers)", vim.log.levels.WARN)
 	end
-end, { desc = "CWD: project root + open Neo-tree" })
+end, { desc = "CWD: project root" })
 
 vim.keymap.set("n", "<leader>es", function()
 	notify("Current CWD: " .. vim.loop.cwd())
