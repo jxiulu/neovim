@@ -78,54 +78,100 @@ local function lsp_on_attach(client, bufnr)
 	end
 end
 
-local green = "#98fb98" -- neon green
-local orange = "#ffcc66"
-local red = "#ff5c57"
-local fore = "#d0d0d0"
-local dim = "#b0b0b0"
-local maybegreen = "#c6ffd0"
+local cherry = "#ff5f87" -- vibrant rose red
+local poppy = "#ff5f5f" -- warm scarlet
+local coral = "#ff875f" -- soft orange-red
+local amber = "#ffaf5f" -- golden amber
+local orange = "#d28b44"
+local marigold = "#ffd75f" -- bright sunflower yellow
+local chartreuse = "#d7ff5f" -- lively yellow-green
+local spring = "#afff87" -- fresh spring green
+local jade = "#5fff87" -- saturated leafy green
+local seafoam = "#5fffc7" -- aqua-tinted green
+local turquoise = "#5fffd7" -- cool turquoise
+local lagoon = "#5fd7ff" -- clear lagoon blue
+local fartgreen = "#64af49"
+local cerulean = "#5fafff" -- calm sky blue
+local indigo = "#5f87ff" -- rich indigo
+local violet = "#875fff" -- dusky violet
+local orchid = "#af5fff" -- electric orchid
+local magenta = "#d75fff" -- vivid magenta
+local burple = "#b65493"
 
 -- PLUGINS
 require("lazy").setup({
 	-- THEMES
-	{ "joshdick/onedark.vim" },
+	{
+		dir = "/Users/jerrylu/Documents/Projects/agi-theme",
+		name = "agi-theme",
+		lazy = true,
+		config = function()
+			require("agi-theme").setup({ colors = { bg0 = "#181818", fg0 = "#dadada" } })
+		end,
+	},
 	{
 		dir = "/Users/jerrylu/Documents/Projects/mytheme",
 		name = "mytheme",
-		lazy = false,
+		lazy = true,
 		priority = 1000,
 
 		opts = {
 			variant = "dark",
 			transparent = false,
 			palette = {
-				base00 = "#101010", -- primary background (pure black or CRT black)
-				base01 = "#1a1a1a", -- slightly raised background (cursorline)
-				base02 = "#555555", -- vertical split lines, folds, non-current windows
-				base03 = "#666666", -- comments, low-contrast borders
-				base04 = "#a0a0a0", -- muted UI text (non-active tabs, etc)
-				base05 = fore, -- main foreground
-				base06 = "#e8e8e8", -- lighter foreground (hovered/selected)
-				base07 = "#f0f0f0", -- brightest highlight
-
-				base08 = red, -- 🔴 errors (red-toned, retro-styled)
-				base09 = orange, -- 🟡 warnings (amber/yellow, old terminal feel)
-				base0A = green, -- ✅ mono accent (lime green)
-				base0B = green, -- ✅ reuse green for success/strings
-				base0C = green, -- ✅ reuse green for hints
-				base0D = fore, -- ✅ functions/directories = green
-				base0E = maybegreen, -- ✅ keywords = green
-				base0F = fore, -- 🟡 identifiers/fields = yellow-ish
+				base00 = "#212121",
+				-- primary background / editor surface
+				base01 = "#212121",
+				-- elevated panels, cursorline, popups
+				base02 = "#6c6c6c",
+				-- subtle separators, selection outlines
+				base03 = "#6c6c6c",
+				-- comments, noncritical accents
+				base04 = "#9e9e9e",
+				-- muted status text and secondary UI
+				base05 = "#dadada",
+				-- default foreground
+				base06 = "#eeeeee",
+				-- brighter foreground accents
+				base07 = "#ffffff",
+				-- highest-value highlights
+				base08 = cherry,
+				-- errors, deletions, critical warnings
+				base09 = amber,
+				-- warnings, numbers, attention markers
+				base0A = orange,
+				-- search matches, emphasized labels, types
+				base0B = fartgreen,
+				-- strings, successes, additions
+				base0C = burple,
+				-- hints, special text, builtins, namespaces, constants
+				base0D = violet,
+				-- functions, titles, active selection
+				base0E = magenta,
+				-- keywords, control flow, type hints,
+				base0F = "#dadada",
+				-- fields, attributes, miscellaneous accents
 			},
 			styles = {
 				keywords = { bold = false },
 				constants = { bold = true },
+				comments = { italic = true },
 			},
 		},
 		config = function(_, opts)
 			vim.g.mytheme_options = opts
 			require("mytheme").setup(opts)
 		end,
+	},
+	-- other themes
+	{
+		"nickkadutskyi/jb.nvim",
+		"xiantang/darcula-dark.nvim",
+		"idr4n/github-monochrome.nvim",
+		"felipeagc/fleet-theme-nvim",
+		"flazz/vim-colorschemes",
+
+		priority = 1000,
 	},
 	{
 		"folke/snacks.nvim",
@@ -487,13 +533,31 @@ require("lazy").setup({
 					},
 				},
 				cmake = {},
+				ts_ls = {
+					settings = {
+						typescript = {
+							preferences = {
+								includeCompletionsForModuleExports = true,
+								includeCompletionsForImportStatements = true,
+							},
+						},
+					},
+				},
+				rust_analyzer = {},
+			}
+
+			local skip_servers = {
+				rust_analyzer = true, -- rustaceanvim manages this server
 			}
 
 			return {
-				ensure_installed = { "clangd", "lua_ls", "cmake" },
+				ensure_installed = { "clangd", "lua_ls", "cmake", "ts_ls", "eslint", "biome", "rust_analyzer" },
 				automatic_installation = false,
 				handlers = {
 					function(server_name)
+						if skip_servers[server_name] then
+							return
+						end
 						if not lspconfig[server_name] then
 							return
 						end
@@ -509,6 +573,69 @@ require("lazy").setup({
 	},
 	{
 		"neovim/nvim-lspconfig",
+	},
+	{
+		"mrcjkb/rustaceanvim",
+		version = "^5",
+		lazy = false,
+		ft = { "rust" },
+		opts = {
+			server = {
+				on_attach = lsp_on_attach, -- Uses your existing function
+				default_settings = {
+					["rust-analyzer"] = {
+						checkOnSave = true,
+						cargo = {
+							allFeatures = true,
+							loadOutDirsFromCheck = true,
+							buildScripts = { enable = true },
+						},
+						procMacro = {
+							enable = true,
+							ignored = {
+								["async-trait"] = { "async_trait" },
+								["napi-derive"] = { "napi" },
+							},
+						},
+						inlayHints = {
+							typeHints = { enable = true },
+							parameterHints = { enable = true },
+							chainingHints = { enable = true },
+						},
+					},
+				},
+			},
+		},
+		config = function(_, opts)
+			vim.g.rustaceanvim = vim.tbl_deep_extend("keep", vim.g.rustaceanvim or {}, opts or {})
+		end,
+	},
+	{
+		"saecki/crates.nvim",
+		event = { "BufRead Cargo.toml" },
+		dependencies = { "nvim-lua/plenary.nvim" },
+		opts = {
+			completion = {
+				cmp = { enabled = true },
+			},
+			lsp = {
+				enabled = true,
+				actions = true,
+				completion = true,
+				hover = true,
+			},
+		},
+		config = function(_, opts)
+			require("crates").setup(opts)
+
+			-- Add to nvim-cmp sources
+			local cmp_ok, cmp = pcall(require, "cmp")
+			if cmp_ok then
+				local config = cmp.get_config()
+				table.insert(config.sources, { name = "crates" })
+				cmp.setup(config)
+			end
+		end,
 	},
 
 	-- Autocomplete
@@ -579,6 +706,11 @@ require("lazy").setup({
 				cpp = { "clang_format" },
 				lua = { "stylua" },
 				python = { "isort", "black" },
+				rust = { "rustfmt" },
+				javascript = { "biome", "prettierd", "prettier" },
+				typescript = { "biome", "prettierd", "prettier" },
+				javascriptreact = { "biome", "prettierd", "prettier" },
+				typescriptreact = { "biome", "prettierd", "prettier" },
 			},
 			formatters = {
 				clang_format = {
@@ -746,6 +878,43 @@ require("lazy").setup({
 	},
 
 	{
+		"mxsdev/nvim-dap-vscode-js",
+		"microsoft/vscode-js-debug",
+		build = "npm i --prefix=vscode-js-debug --legacy-peer-deps && npm run compile --prefix=vscode-js-debug",
+		dependencies = { "mfussenegger/nvim-dap" },
+		config = function()
+			local dap = require("dap")
+			require("dap-vscode-js").setup({
+				debugger_path = vim.fn.stdpath("data") .. "/lazy/vscode-js-debug",
+				adapters = { "pwa-node", "pwa-chrome", "pwa-msedge", "node-terminal", "pwa-extensionHost" },
+			})
+
+			-- Node.js/TypeScript debugging configurations
+			dap.configurations.javascript = {
+				{
+					type = "pwa-node",
+					request = "launch",
+					name = "Launch file",
+					program = "${file}",
+					cwd = "${workspaceFolder}",
+				},
+				{
+					type = "pwa-node",
+					request = "launch",
+					name = "Launch npm script",
+					runtimeExecutable = "npm",
+					runtimeArgs = { "run", "debug" },
+					cwd = "${workspaceFolder}",
+				},
+			}
+
+			dap.configurations.typescript = dap.configurations.javascript
+			dap.configurations.javascriptreact = dap.configurations.javascript
+			dap.configurations.typescriptreact = dap.configurations.javascript
+		end,
+	},
+
+	{
 		"folke/neodev.nvim",
 		opts = {},
 	},
@@ -809,9 +978,18 @@ require("lazy").setup({
 			anti_conceal = {
 				enabled = true,
 			},
+			heading = {
+				border = true,
+				border_virtual = true,
+			},
 		},
 		ft = { "markdown" },
 	},
+	-- {
+	-- 	"bullets-vim/bullets.vim",
+	-- 	ft = "markdown",
+	-- 	event = "LspAttach",
+	-- },
 
 	-- {
 	-- 	"folke/noice.nvim",
@@ -972,6 +1150,7 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 })
 
 -- Load saved colorscheme on startup
+-- Use VimEnter to ensure plugins are loaded but before UI is fully rendered
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()
 		local config_dir = vim.fn.stdpath("config")
@@ -983,7 +1162,10 @@ vim.api.nvim_create_autocmd("VimEnter", {
 			file:close()
 
 			if saved_theme and saved_theme ~= "" then
-				pcall(vim.cmd.colorscheme, saved_theme)
+				-- Ensure the theme plugin is loaded before applying
+				vim.schedule(function()
+					pcall(vim.cmd.colorscheme, saved_theme)
+				end)
 			end
 		end
 	end,
@@ -1006,12 +1188,29 @@ vim.diagnostic.config({
 	float = { border = borderopt, source = "if_many", focusable = false },
 })
 
+local function close_diag_float()
+	local win = vim.b._diag_float
+	if win and vim.api.nvim_win_is_valid(win) then
+		pcall(vim.api.nvim_win_close, win, true)
+	end
+	vim.b._diag_float = nil
+end
+
 vim.api.nvim_create_autocmd({ "CursorHold" }, {
 	callback = function()
-		if not vim.b._diag_float then
-			vim.diagnostic.open_float(nil, { border = borderopt, focusable = false })
+		local win = vim.b._diag_float
+		if win and vim.api.nvim_win_is_valid(win) then
+			return
+		end
+		local _, float_win = vim.diagnostic.open_float(nil, { border = borderopt, focusable = false })
+		if float_win and vim.api.nvim_win_is_valid(float_win) then
+			vim.b._diag_float = float_win
 		end
 	end,
+})
+
+vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "InsertEnter", "BufHidden" }, {
+	callback = close_diag_float,
 })
 
 -- KEYMAPS
@@ -1169,12 +1368,127 @@ end, { desc = "sel 3" })
 map("n", "<leader>d4", function()
 	dart:list():select(4)
 end, { desc = "sel 4" })
-map("n", "<leader>dn", function()
+map("n", "<leader>dp", function()
 	dart:list():prev()
 end, { desc = "dart prev" })
 map("n", "<leader>dn", function()
 	dart:list():next()
 end, { desc = "dart next" })
+
+--
+-- rust
+--
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "rust",
+	callback = function()
+		-- Rust-specific settings
+		vim.opt_local.colorcolumn = "100"
+		vim.opt_local.textwidth = 99
+
+		-- Cargo command keymaps
+		local map = vim.keymap.set
+		local opts = { buffer = true, silent = true, noremap = true }
+
+		-- Basic Cargo commands
+		map("n", "<leader>rb", ":!cargo build<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Build" }))
+		map("n", "<leader>rt", ":!cargo test<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Test" }))
+		map("n", "<leader>rr", ":!cargo run<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Run" }))
+		map("n", "<leader>rc", ":!cargo check<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Check" }))
+		map("n", "<leader>rf", ":!cargo fmt<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Format" }))
+		map("n", "<leader>rl", ":!cargo clippy<CR>", vim.tbl_extend("force", opts, { desc = "Cargo Clippy" }))
+
+		-- Rustaceanvim commands (if you added the plugin)
+		local rustaceanvim_ok = pcall(require, "rustaceanvim")
+		if rustaceanvim_ok then
+			map("n", "<leader>rR", ":RustLsp runnables<CR>", vim.tbl_extend("force", opts, { desc = "Rust Runnables" }))
+			map("n", "<leader>rd", ":RustLsp debuggables<CR>", vim.tbl_extend("force", opts, { desc = "Rust Debug" }))
+			map("n", "<leader>re", ":RustLsp expandMacro<CR>", vim.tbl_extend("force", opts, { desc = "Expand Macro" }))
+			map(
+				"n",
+				"<leader>rC",
+				":RustLsp openCargo<CR>",
+				vim.tbl_extend("force", opts, { desc = "Open Cargo.toml" })
+			)
+			map(
+				"n",
+				"<leader>rp",
+				":RustLsp parentModule<CR>",
+				vim.tbl_extend("force", opts, { desc = "Parent Module" })
+			)
+			map(
+				"n",
+				"<leader>rh",
+				":RustLsp hover actions<CR>",
+				vim.tbl_extend("force", opts, { desc = "Hover Actions" })
+			)
+		end
+
+		-- Toggle inlay hints
+		map("n", "<leader>ri", function()
+			vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
+		end, vim.tbl_extend("force", opts, { desc = "Toggle Inlay Hints" }))
+	end,
+})
+
+-- Cargo.toml specific keymaps (for crates.nvim)
+vim.api.nvim_create_autocmd("BufRead", {
+	pattern = "Cargo.toml",
+	callback = function()
+		local crates_ok = pcall(require, "crates")
+		if not crates_ok then
+			return
+		end
+
+		local map = vim.keymap.set
+		local opts = { buffer = true, silent = true, noremap = true }
+
+		map(
+			"n",
+			"<leader>ct",
+			":lua require('crates').toggle()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Crates Toggle" })
+		)
+		map(
+			"n",
+			"<leader>cu",
+			":lua require('crates').update_crate()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Update Crate" })
+		)
+		map(
+			"n",
+			"<leader>cU",
+			":lua require('crates').upgrade_crate()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Upgrade Crate" })
+		)
+		map(
+			"n",
+			"<leader>ca",
+			":lua require('crates').update_all_crates()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Update All" })
+		)
+		map(
+			"n",
+			"<leader>cA",
+			":lua require('crates').upgrade_all_crates()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Upgrade All" })
+		)
+		map(
+			"n",
+			"<leader>cH",
+			":lua require('crates').open_homepage()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Homepage" })
+		)
+		map(
+			"n",
+			"<leader>cD",
+			":lua require('crates').open_documentation()<CR>",
+			vim.tbl_extend("force", opts, { desc = "Documentation" })
+		)
+
+		vim.notify("Cargo.toml: <leader>c for crate commands", vim.log.levels.INFO)
+	end,
+})
 
 -- CODE
 --map("n", "<leader>cr", vim.lsp.buf.rename, "LSP Rename Symbol")
