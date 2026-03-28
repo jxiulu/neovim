@@ -1,26 +1,17 @@
--- Neovim Configuration - Streamlined for C++ and C# Development
-
--- =============================================================================
--- PERFORMANCE & BASIC OPTIONS
--- =============================================================================
-
--- Enable loader optimization
 if vim.loader then
 	vim.loader.enable()
 end
 
--- Leader keys
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
--- Basic options
 local opt = vim.opt
 opt.termguicolors = true
 opt.number = true
 opt.relativenumber = true
 opt.mouse = "a"
 opt.clipboard = "unnamedplus"
-opt.updatetime = 1000 -- 1 second for CursorHold events (diagnostics/inlay hints)
+opt.updatetime = 1000
 opt.timeoutlen = 400
 opt.smartindent = true
 opt.splitbelow = true
@@ -28,6 +19,7 @@ opt.splitright = true
 opt.ignorecase = true
 opt.smartcase = true
 opt.signcolumn = "yes"
+opt.statuscolumn = "%s%=%{v:relnum?v:relnum:v:lnum} "
 opt.cursorline = false
 opt.swapfile = false
 opt.autochdir = false
@@ -43,11 +35,9 @@ opt.shiftwidth = 4
 opt.softtabstop = 4
 opt.expandtab = true
 opt.colorcolumn = "81"
-opt.textwidth = 80
+opt.textwidth = 0
 
---
--- Fill entire window
---
+-- Fill entire window with colorscheme background
 vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme" }, {
 	callback = function()
 		local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
@@ -81,7 +71,6 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Border style for floating windows
 local border = "rounded"
 
 -- =============================================================================
@@ -93,16 +82,12 @@ local function lsp_on_attach(client, bufnr)
 		vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true, noremap = true, desc = desc })
 	end
 
-	-- LSP navigation (using Snacks pickers)
 	map("n", "K", vim.lsp.buf.hover, "LSP Hover")
 	map("n", "<leader>rn", vim.lsp.buf.rename, "Rename Symbol")
 	map("n", "<leader>ca", vim.lsp.buf.code_action, "Code Action")
-
-	-- Diagnostics
 	map("n", "[d", vim.diagnostic.goto_prev, "Prev Diagnostic")
 	map("n", "]d", vim.diagnostic.goto_next, "Next Diagnostic")
 
-	-- Disable inlay hints by default
 	if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
 		vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
 	end
@@ -117,11 +102,18 @@ require("lazy").setup({
 	-- THEMES
 	-- =========================================================================
 
-	-- Custom local themes
 	{
 		"nickkadutskyi/jb.nvim",
-		"karoliskoncevicius/distilled-vim",
-		"kvrohit/rasmus.nvim",
+        "NTBBloodbath/doom-one.nvim",
+        "mswift42/vim-themes",
+        "gaelph/nano.nvim",
+        "abcwalk/gruber-darker-theme.nvim",
+        "d11wtq/subatomic256.vim",
+        "ThunderBoltCODMYT/gruber-darker.vim",
+        "anshai-git/sephyr.nvim",
+        "gregsexton/Muon",
+        "baskerville/bubblegum",
+        "zefei/simple-dark",
 		lazy = false,
 		priority = 1000,
 		opts = {},
@@ -141,14 +133,6 @@ require("lazy").setup({
 				comments = "#AAAAAA",
 				variables = "#b8b8b8",
 			})
-		end,
-	},
-	{
-		"alligator/accent.vim",
-		lazy = false,
-		priority = 1000,
-		config = function()
-			vim.g.accent_colour = "green"
 		end,
 	},
 
@@ -312,7 +296,6 @@ require("lazy").setup({
 			vim.api.nvim_create_autocmd("User", {
 				pattern = "VeryLazy",
 				callback = function()
-					-- Debug helpers
 					_G.dd = function(...)
 						Snacks.debug.inspect(...)
 					end
@@ -321,7 +304,6 @@ require("lazy").setup({
 					end
 					vim.print = _G.dd
 
-					-- Toggle mappings
 					Snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>us")
 					Snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>uw")
 					Snacks.toggle.option("relativenumber", { name = "Relative Number" }):map("<leader>uL")
@@ -349,13 +331,15 @@ require("lazy").setup({
 			ensure_installed = {
 				"c",
 				"cpp",
-				"c_sharp",
+				"java",
+				"rust",
 				"lua",
 				"vim",
 				"vimdoc",
 				"markdown",
 				"markdown_inline",
 				"json",
+				"toml",
 				"bash",
 			},
 			highlight = { enable = true },
@@ -396,7 +380,7 @@ require("lazy").setup({
 			local base_opts = { on_attach = lsp_on_attach, capabilities = capabilities }
 
 			local servers = {
-				-- C++ Configuration
+				-- C/C++
 				clangd = {
 					cmd = {
 						"clangd",
@@ -413,39 +397,24 @@ require("lazy").setup({
 					root_dir = util.root_pattern("compile_commands.json", "compile_flags.txt", ".git"),
 				},
 
-				-- C# Configuration
-				omnisharp = {
-					cmd = { "omnisharp", "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
-					enable_roslyn_analyzers = true,
-					organize_imports_on_format = true,
-					enable_import_completion = true,
+				-- Rust
+				rust_analyzer = {
 					settings = {
-						FormattingOptions = {
-							EnableEditorConfigSupport = true,
-							OrganizeImports = true,
-						},
-						RoslynExtensionsOptions = {
-							EnableAnalyzersSupport = true,
-							EnableImportCompletion = true,
+						["rust-analyzer"] = {
+							checkOnSave = { command = "clippy" },
+							cargo = { allFeatures = true },
+							procMacro = { enable = true },
 						},
 					},
-					handlers = {
-						["textDocument/definition"] = function(...)
-							return require("omnisharp_extended").definition_handler(...)
-						end,
-						["textDocument/typeDefinition"] = function(...)
-							return require("omnisharp_extended").type_definition_handler(...)
-						end,
-						["textDocument/references"] = function(...)
-							return require("omnisharp_extended").references_handler(...)
-						end,
-						["textDocument/implementation"] = function(...)
-							return require("omnisharp_extended").implementation_handler(...)
-						end,
-					},
+					root_dir = util.root_pattern("Cargo.toml", ".git"),
 				},
 
-				-- Lua for config editing
+				-- Java
+				jdtls = {
+					root_dir = util.root_pattern("build.gradle", "pom.xml", "settings.gradle", ".git"),
+				},
+
+				-- Lua (for config editing)
 				lua_ls = {
 					settings = {
 						Lua = {
@@ -454,10 +423,13 @@ require("lazy").setup({
 						},
 					},
 				},
+
+				-- Markdown
+				marksman = {},
 			}
 
 			return {
-				ensure_installed = { "clangd", "omnisharp", "lua_ls" },
+				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman" },
 				automatic_installation = false,
 				handlers = {
 					function(server_name)
@@ -474,7 +446,6 @@ require("lazy").setup({
 	},
 
 	{ "neovim/nvim-lspconfig" },
-	{ "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 
 	-- Completion
 	{
@@ -537,9 +508,11 @@ require("lazy").setup({
 		opts = {
 			formatters_by_ft = {
 				lua = { "stylua" },
-				cpp = { "clang_format" },
 				c = { "clang_format" },
-				cs = { "csharpier" },
+				cpp = { "clang_format" },
+				java = { "google-java-format" },
+				rust = { "rustfmt" },
+				markdown = { "prettier" },
 			},
 			formatters = {
 				clang_format = {
@@ -576,7 +549,7 @@ require("lazy").setup({
 			local dap = require("dap")
 			local dapui = require("dapui")
 
-			require("mason-nvim-dap").setup({ ensure_installed = { "codelldb", "netcoredbg" } })
+			require("mason-nvim-dap").setup({ ensure_installed = { "codelldb" } })
 			dapui.setup()
 
 			-- Auto-open/close DAP UI
@@ -600,7 +573,7 @@ require("lazy").setup({
 				dap.set_breakpoint(vim.fn.input("Breakpoint condition: "))
 			end, { desc = "Conditional Breakpoint" })
 
-			-- C/C++ Adapter (codelldb)
+			-- codelldb adapter (C/C++/Rust)
 			local mason_path = vim.fn.stdpath("data") .. "/mason/packages/codelldb/extension/"
 			local codelldb = mason_path .. "adapter/codelldb"
 			dap.adapters.codelldb = {
@@ -609,15 +582,13 @@ require("lazy").setup({
 				executable = { command = codelldb, args = { "--port", "${port}" } },
 			}
 
-			-- C/C++ Configuration
+			-- C/C++ debug config
 			dap.configurations.cpp = {
 				{
 					name = "Launch (build & run)",
 					type = "codelldb",
 					request = "launch",
 					program = function()
-						-- Auto-build with make or cmake
-						vim.fn.jobstart({ "bash", "-c", "make -j || cmake -S . -B build && cmake --build build -j" })
 						return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. "/build/", "file")
 					end,
 					cwd = "${workspaceFolder}",
@@ -626,24 +597,25 @@ require("lazy").setup({
 			}
 			dap.configurations.c = dap.configurations.cpp
 
-			-- C# / .NET Adapter
-			dap.adapters.coreclr = {
-				type = "executable",
-				command = "netcoredbg",
-				args = { "--interpreter=vscode" },
-			}
-
-			-- C# Configuration
-			dap.configurations.cs = {
+			-- Rust debug config
+			dap.configurations.rust = {
 				{
-					type = "coreclr",
-					name = "Launch .NET",
+					name = "Launch",
+					type = "codelldb",
 					request = "launch",
 					program = function()
-						return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/", "file")
+						-- Find the binary in target/debug
+						local cwd = vim.fn.getcwd()
+						local name = vim.fn.fnamemodify(cwd, ":t")
+						local default = cwd .. "/target/debug/" .. name
+						return vim.fn.input("Path to executable: ", default, "file")
 					end,
+					cwd = "${workspaceFolder}",
+					stopOnEntry = false,
 				},
 			}
+
+			-- Java debug config (via jdtls, configured below)
 		end,
 	},
 
@@ -707,11 +679,7 @@ require("lazy").setup({
 		cmd = "Trouble",
 		keys = {
 			{ "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Diagnostics (Trouble)" },
-			{
-				"<leader>xX",
-				"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-				desc = "Buffer Diagnostics (Trouble)",
-			},
+			{ "<leader>xX", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", desc = "Buffer Diagnostics (Trouble)" },
 			{ "<leader>xs", "<cmd>Trouble symbols toggle focus=false<cr>", desc = "Symbols (Trouble)" },
 		},
 	},
@@ -724,14 +692,12 @@ require("lazy").setup({
 	{ "numToStr/Comment.nvim", opts = {} },
 	{ "folke/which-key.nvim", opts = {} },
 	{ "windwp/nvim-autopairs", event = "InsertEnter", opts = {} },
-	{ "rmagatti/auto-session", lazy = false, opts = { suppressed_dirs = { "~/Downloads" } } },
 }, { ui = { border = border } })
 
 -- =============================================================================
--- DIAGNOSTICS & INLAY HINTS (HOVER-BASED)
+-- DIAGNOSTICS
 -- =============================================================================
 
--- Configure diagnostics: no virtual text, show in floating window on hover
 vim.diagnostic.config({
 	virtual_text = false,
 	signs = true,
@@ -746,7 +712,7 @@ vim.diagnostic.config({
 	},
 })
 
--- Show diagnostics in floating window after 1 second hover
+-- Show diagnostics in floating window on cursor hold
 vim.api.nvim_create_autocmd("CursorHold", {
 	group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
 	callback = function()
@@ -754,107 +720,11 @@ vim.api.nvim_create_autocmd("CursorHold", {
 	end,
 })
 
--- Show inlay hints in floating window after 1 second hover (if enabled)
-local inlay_hint_float_ns = vim.api.nvim_create_namespace("inlay_hint_float")
-vim.api.nvim_create_autocmd("CursorHold", {
-	group = vim.api.nvim_create_augroup("float_inlay_hints", { clear = true }),
-	callback = function()
-		local bufnr = vim.api.nvim_get_current_buf()
-
-		-- Only show if inlay hints are enabled for this buffer
-		if not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }) then
-			return
-		end
-
-		local pos = vim.api.nvim_win_get_cursor(0)
-		local line = pos[1] - 1
-		local col = pos[2]
-
-		-- Get LSP clients that support inlay hints
-		local clients = vim.lsp.get_clients({ bufnr = bufnr })
-		for _, client in ipairs(clients) do
-			if client.server_capabilities.inlayHintProvider then
-				-- Request inlay hints for current line
-				local params = {
-					textDocument = vim.lsp.util.make_text_document_params(),
-					range = {
-						start = { line = line, character = 0 },
-						["end"] = { line = line + 1, character = 0 },
-					},
-				}
-
-				client.request("textDocument/inlayHint", params, function(err, result)
-					if err or not result or vim.tbl_isempty(result) then
-						return
-					end
-
-					-- Build hint text
-					local hints = {}
-					for _, hint in ipairs(result) do
-						local label = type(hint.label) == "string" and hint.label
-							or table.concat(
-								vim.tbl_map(function(part)
-									return part.value
-								end, hint.label),
-								""
-							)
-						table.insert(hints, label)
-					end
-
-					if #hints > 0 then
-						local hint_text = table.concat(hints, " ")
-						-- Show in a minimal floating window
-						local lines = { hint_text }
-						local buf = vim.api.nvim_create_buf(false, true)
-						vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-						vim.api.nvim_open_win(buf, false, {
-							relative = "cursor",
-							width = #hint_text,
-							height = 1,
-							row = 1,
-							col = 0,
-							style = "minimal",
-							border = border,
-						})
-
-						-- Auto-close after a short delay
-						vim.defer_fn(function()
-							if vim.api.nvim_buf_is_valid(buf) then
-								vim.api.nvim_buf_delete(buf, { force = true })
-							end
-						end, 2000)
-					end
-				end, bufnr)
-				break
-			end
-		end
-	end,
-})
-
 -- =============================================================================
 -- LANGUAGE-SPECIFIC SETTINGS
 -- =============================================================================
 
--- C# specific settings and keymaps
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "cs",
-	callback = function()
-		vim.opt_local.tabstop = 4
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.expandtab = true
-
-		local map = function(keys, cmd, desc)
-			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
-		end
-
-		map("<leader>cb", ":!dotnet build<CR>", "C# Build")
-		map("<leader>ct", ":!dotnet test<CR>", "C# Test")
-		map("<leader>cr", ":!dotnet run<CR>", "C# Run")
-	end,
-})
-
--- C/C++ specific settings
+-- C/C++
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "c", "cpp" },
 	callback = function()
@@ -865,13 +735,60 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- Rust
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "rust",
+	callback = function()
+		vim.opt_local.tabstop = 4
+		vim.opt_local.shiftwidth = 4
+		vim.opt_local.expandtab = true
+		vim.opt_local.colorcolumn = "100"
+
+		local map = function(keys, cmd, desc)
+			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
+		end
+		map("<leader>cb", ":!cargo build<CR>", "Cargo Build")
+		map("<leader>cr", ":!cargo run<CR>", "Cargo Run")
+		map("<leader>ct", ":!cargo test<CR>", "Cargo Test")
+		map("<leader>cc", ":!cargo clippy<CR>", "Cargo Clippy")
+	end,
+})
+
+-- Java
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "java",
+	callback = function()
+		vim.opt_local.tabstop = 4
+		vim.opt_local.shiftwidth = 4
+		vim.opt_local.expandtab = true
+		vim.opt_local.colorcolumn = "120"
+
+		local map = function(keys, cmd, desc)
+			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
+		end
+		map("<leader>cb", ":!javac %<CR>", "Compile File")
+		map("<leader>cr", ":!java %:r<CR>", "Run File")
+	end,
+})
+
+-- Markdown
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "markdown",
+	callback = function()
+		vim.opt_local.wrap = true
+		vim.opt_local.linebreak = true
+		vim.opt_local.spell = true
+		vim.opt_local.conceallevel = 2
+		vim.opt_local.colorcolumn = ""
+	end,
+})
+
 -- =============================================================================
 -- THEME PERSISTENCE
 -- =============================================================================
 
 local theme_file = vim.fn.stdpath("config") .. "/last_theme.txt"
 
--- Save theme on exit
 vim.api.nvim_create_autocmd("VimLeavePre", {
 	callback = function()
 		local file = io.open(theme_file, "w")
@@ -882,7 +799,6 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 	end,
 })
 
--- Restore theme on startup
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()
 		local file = io.open(theme_file, "r")
@@ -928,7 +844,7 @@ require("which-key").add({
 	{ "<leader>f", group = "Find" },
 	{ "<leader>s", group = "Search" },
 	{ "<leader>g", group = "Git" },
-	{ "<leader>c", group = "Code/C#" },
+	{ "<leader>c", group = "Code" },
 	{ "<leader>d", group = "Debug" },
 	{ "<leader>x", group = "Trouble" },
 	{ "<leader>n", group = "Notifications" },
