@@ -19,6 +19,7 @@ return {
 			{ "<leader>fg", function() Snacks.picker.git_files() end, desc = "Find Git Files" },
 			{ "<leader>fr", function() Snacks.picker.recent() end, desc = "Recent Files" },
 			{ "<leader>fc", function() Snacks.picker.colorschemes() end, desc = "Colorschemes" },
+			{ "<leader>fb", function() Snacks.picker.buffers() end, desc = "Open Buffers" },
 
 			-- Search
 			{ "<leader>sb", function() Snacks.picker.lines() end, desc = "Search Buffer Lines" },

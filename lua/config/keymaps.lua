@@ -10,6 +10,15 @@ map("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "Close Tab" })
 map("n", "<leader>tn", "<cmd>tabnext<CR>", { desc = "Next Tab" })
 map("n", "<leader>tp", "<cmd>tabprevious<CR>", { desc = "Previous Tab" })
 
+-- Reload colorscheme
+map("n", "<leader>uR", function()
+	if _G.reload_colorscheme then
+		_G.reload_colorscheme()
+	else
+		vim.notify("No reload function available for current theme", vim.log.levels.WARN)
+	end
+end, { desc = "Reload Colorscheme" })
+
 -- Quick config access
 vim.api.nvim_create_user_command("Config", function()
 	vim.cmd("cd ~/.config/nvim")
