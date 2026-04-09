@@ -16,20 +16,24 @@ return {
 		opts = {},
 	},
 	{
-		dir = "/Users/jerrylu/Documents/Projects/BetterTheme",
+		dir = "/Users/jerrylu/Documents/Software/neovim/netenyahu-theme",
+		name = "netenyahu",
 		lazy = false,
 		priority = 1000,
-		config = function()
-			require("bettertheme").setup({
-				background = "#303030",
-				lighter_background = "#3f3f3f",
-				standard_text = "#dbdbdb",
-				keywords = "#8fbf7a",
-				type_names = "#ebebeb",
-				syntax = "#c9c9c9",
-				comments = "#AAAAAA",
-				variables = "#b8b8b8",
-			})
+		opts = {
+		},
+		config = function(_, opts)
+			require("netenyahu").setup(opts)
+			_G.reload_colorscheme = function()
+				for k in pairs(package.loaded) do
+					if k:find("netenyahu", 1, true) then
+						package.loaded[k] = nil
+					end
+				end
+				require("netenyahu").setup(opts)
+				vim.cmd.colorscheme("netenyahu")
+				vim.notify("Reloaded: netenyahu")
+			end
 		end,
 	},
 }

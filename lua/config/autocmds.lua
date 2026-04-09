@@ -38,6 +38,17 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+-- Rust: cd to project root on enter
+vim.api.nvim_create_autocmd("BufEnter", {
+	pattern = "*.rs",
+	callback = function()
+		local root = vim.fs.root(0, "Cargo.toml")
+		if root then
+			vim.cmd.lcd(root)
+		end
+	end,
+})
+
 -- Rust
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "rust",
@@ -99,7 +110,7 @@ vim.api.nvim_create_autocmd("FileType", {
 		vim.opt_local.wrap = true
 		vim.opt_local.linebreak = true
 		vim.opt_local.spell = true
-		vim.opt_local.conceallevel = 2
+		vim.opt_local.conceallevel = 1
 		vim.opt_local.colorcolumn = ""
 	end,
 })
