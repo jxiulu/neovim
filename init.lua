@@ -2,7 +2,7 @@ if vim.loader then
 	vim.loader.enable()
 end
 
-require("config.options")
+require("jxiulu.config.options")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.loop.fs_stat(lazypath) then
@@ -18,7 +18,7 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 
-require("lazy").setup("plugins", { ui = { border = "rounded" } })
+require("lazy").setup("jxiulu.plugins", { ui = { border = "rounded" } })
 
-require("config.autocmds")
-require("config.keymaps")
+require("jxiulu.config.autocmds")
+require("jxiulu.config.keymaps")
