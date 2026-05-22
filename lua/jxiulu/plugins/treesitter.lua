@@ -1,11 +1,16 @@
 return {
 	{
 		"nvim-treesitter/nvim-treesitter",
+		branch = "main",
+		lazy = false,
 		build = function()
-			pcall(require("nvim-treesitter.install").update({ with_sync = true }))
+			if vim.fn.executable("tree-sitter") == 1 then
+				vim.cmd.TSUpdate()
+			end
 		end,
-		opts = {
-			ensure_installed = {
+		config = function()
+			local treesitter = require("nvim-treesitter")
+			local parsers = {
 				"c",
 				"cpp",
 				"java",
@@ -19,21 +24,25 @@ return {
 				"json",
 				"toml",
 				"bash",
-			},
-			highlight = { enable = true },
-			indent = { enable = true },
-			incremental_selection = {
-				enable = true,
-				keymaps = {
-					init_selection = "<CR>",
-					node_incremental = "<CR>",
-					node_decremental = "<BS>",
-					scope_incremental = "<TAB>",
-				},
-			},
-		},
-		config = function(_, opts)
-			require("nvim-treesitter.configs").setup(opts)
+			}
+
+			treesitter.setup({
+				install_dir = vim.fn.stdpath("data") .. "/site",
+			})
+
+			if vim.fn.executable("tree-sitter") == 1 then
+				treesitter.install(parsers)
+			end
+
+			vim.api.nvim_create_autocmd("FileType", {
+				group = vim.api.nvim_create_augroup("treesitter_start", { clear = true }),
+				pattern = parsers,
+				callback = function()
+					if pcall(vim.treesitter.start) then
+						vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					end
+				end,
+			})
 		end,
 	},
 }
