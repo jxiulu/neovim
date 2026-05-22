@@ -1,8 +1,0 @@
-WRN 2025-10-24T11:47:00.966 ?.26642    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/vs4HGZ/nvim.26642.0
-WRN 2025-10-24T11:47:11.068 ?.26665    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/3v81iP/nvim.26665.0
-WRN 2025-10-24T11:47:27.531 ?.26675    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/3hwCXL/nvim.26675.0
-WRN 2025-10-24T11:47:33.805 ?.26679    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/ksc8AL/nvim.26679.0
-WRN 2025-10-24T11:51:36.208 ?.27217    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/7GBmiW/nvim.27217.0
-WRN 2025-10-24T11:54:22.294 ?.27778    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/73SX4j/nvim.27778.0
-WRN 2025-10-24T11:55:50.861 ?.27939    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/B80bZ6/nvim.27939.0
-WRN 2025-10-24T11:56:20.141 ?.28055    server_start:193: Failed to start server: operation not permitted: /var/folders/s2/nh43lgfs7n9dns2k9q5frchr0000gr/T/nvim.jerrylu/NFWRIP/nvim.28055.0
