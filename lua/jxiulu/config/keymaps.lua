@@ -36,6 +36,5 @@ require("which-key").add({
 	{ "<leader>c", group = "Code" },
 	{ "<leader>d", group = "Debug" },
 	{ "<leader>x", group = "Trouble" },
-	{ "<leader>n", group = "Notifications" },
-	{ "<leader>o", group = "Oil" },
+{ "<leader>o", group = "Oil" },
 })

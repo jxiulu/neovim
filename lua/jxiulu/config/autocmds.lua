@@ -27,16 +27,9 @@ vim.api.nvim_create_autocmd("CursorHold", {
 -- LANGUAGE-SPECIFIC SETTINGS
 -- =============================================================================
 
--- C/C++
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = { "c", "cpp" },
-	callback = function()
-		vim.opt_local.tabstop = 4
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.expandtab = true
-		vim.opt_local.colorcolumn = "81"
-	end,
-})
+local function map(keys, cmd, desc)
+	vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
+end
 
 -- Rust: cd to project root on enter
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -53,14 +46,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "rust",
 	callback = function()
-		vim.opt_local.tabstop = 4
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.expandtab = true
 		vim.opt_local.colorcolumn = "100"
-
-		local map = function(keys, cmd, desc)
-			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
-		end
 		map("<leader>cb", ":!cargo build<CR>", "Cargo Build")
 		map("<leader>cr", ":!cargo run<CR>", "Cargo Run")
 		map("<leader>ct", ":!cargo test<CR>", "Cargo Test")
@@ -72,14 +58,7 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "zig",
 	callback = function()
-		vim.opt_local.tabstop = 4
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.expandtab = true
 		vim.opt_local.colorcolumn = "100"
-
-		local map = function(keys, cmd, desc)
-			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
-		end
 		map("<leader>cb", ":!zig build<CR>", "Zig Build")
 		map("<leader>cr", ":!zig build run<CR>", "Zig Run")
 		map("<leader>ct", ":!zig build test<CR>", "Zig Test")
@@ -90,14 +69,7 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "java",
 	callback = function()
-		vim.opt_local.tabstop = 4
-		vim.opt_local.shiftwidth = 4
-		vim.opt_local.expandtab = true
 		vim.opt_local.colorcolumn = "120"
-
-		local map = function(keys, cmd, desc)
-			vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
-		end
 		map("<leader>cb", ":!javac %<CR>", "Compile File")
 		map("<leader>cr", ":!java %:r<CR>", "Run File")
 	end,
@@ -107,8 +79,6 @@ vim.api.nvim_create_autocmd("FileType", {
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = "markdown",
 	callback = function()
-		vim.opt_local.wrap = true
-		vim.opt_local.linebreak = true
 		vim.opt_local.spell = true
 		vim.opt_local.conceallevel = 2
 		vim.opt_local.colorcolumn = ""
