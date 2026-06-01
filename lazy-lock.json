@@ -14,7 +14,7 @@
   "gruber-darker-theme.nvim": { "branch": "main", "commit": "4dc18875421bff79c519ca7305851e121ea80f96" },
   "gruber-darker.vim": { "branch": "main", "commit": "bb1e2f93e43bad18d4849c9855613e5d8822c806" },
   "jb.nvim": { "branch": "main", "commit": "e580734e50c2502c78c61299537c8aae0bf89563" },
-  "lazy.nvim": { "branch": "main", "commit": "306a05526ada86a7b30af95c5cc81ffba93fef97" },
+  "lazy.nvim": { "branch": "main", "commit": "85c7ff3711b730b4030d03144f6db6375044ae82" },
   "lualine.nvim": { "branch": "master", "commit": "f5d2a8570f8b736ddb9bb4be504355bcd6e15ec8" },
   "mason-lspconfig.nvim": { "branch": "main", "commit": "63a3c6a80538de1003373a619e29aeda27809ad3" },
   "mason-nvim-dap.nvim": { "branch": "main", "commit": "9a10e096703966335bd5c46c8c875d5b0690dade" },

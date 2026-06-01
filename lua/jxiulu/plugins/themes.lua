@@ -1,17 +1,7 @@
 return {
 	{
 		"nickkadutskyi/jb.nvim",
-		"NTBBloodbath/doom-one.nvim",
-		"mswift42/vim-themes",
-		"gaelph/nano.nvim",
-		"abcwalk/gruber-darker-theme.nvim",
-		"d11wtq/subatomic256.vim",
-		"ThunderBoltCODMYT/gruber-darker.vim",
-		"anshai-git/sephyr.nvim",
-		"gregsexton/Muon",
-		"baskerville/bubblegum",
-		"zefei/simple-dark",
-		lazy = false,
+		lazy = true,
 		priority = 1000,
 		opts = {},
 	},
@@ -20,8 +10,7 @@ return {
 		name = "lar-ping",
 		lazy = false,
 		priority = 1000,
-		opts = {
-		},
+		opts = {},
 		config = function(_, opts)
 			require("lar-ping").setup(opts)
 			_G.reload_colorscheme = function()

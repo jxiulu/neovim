@@ -4,9 +4,7 @@ return {
 		branch = "main",
 		lazy = false,
 		build = function()
-			if vim.fn.executable("tree-sitter") == 1 then
-				vim.cmd.TSUpdate()
-			end
+			vim.cmd.TSUpdate()
 		end,
 		config = function()
 			local treesitter = require("nvim-treesitter")
@@ -30,9 +28,7 @@ return {
 				install_dir = vim.fn.stdpath("data") .. "/site",
 			})
 
-			if vim.fn.executable("tree-sitter") == 1 then
-				treesitter.install(parsers)
-			end
+			treesitter.install(parsers)
 
 			vim.api.nvim_create_autocmd("FileType", {
 				group = vim.api.nvim_create_augroup("treesitter_start", { clear = true }),
