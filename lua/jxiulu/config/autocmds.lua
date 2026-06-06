@@ -23,10 +23,14 @@ vim.api.nvim_create_autocmd("CursorHold", {
 	end,
 })
 
--- =============================================================================
 -- LANGUAGE-SPECIFIC SETTINGS
--- =============================================================================
 
+-- Disable treesitter for help files (nvim-treesitter vimdoc query bug on 0.12)
+-- vim.api.nvim_create_autocmd("FileType", {
+-- 	pattern = "help",
+-- 	callback = function() vim.treesitter.stop() end,
+-- })
+--
 local function map(keys, cmd, desc)
 	vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
 end

@@ -4,34 +4,32 @@
 local M = {}
 
 ---@class LarPingConfig
----@field bg? string Background color
----@field bg_darker? string Darker background (sidebars, floats)
----@field bg_float? string Float window background
----@field bg_visual? string Visual selection background
----@field bg_cursor? string Cursor line / cursorcolumn background
+---@field bg? string
+---@field bg_darker? string
+---@field bg_float? string
+---@field bg_visual? string
+---@field bg_cursor? string
 ---@field fg? string Default foreground
----@field fg_dim? string Dimmed foreground (line numbers, borders)
----@field comment? string Comments (italic)
----@field keyword? string Keywords, statements, conditionals
----@field literal? string String literals
----@field comptime? string Macros, numeric/bool/char literals, and compile-time constants (constexpr, Rust const, Zig comptime)
----@field type_name? string Type names (class, struct, typedef, enum …)
----@field blue? string Blue accent
----@field cyan? string Cyan accent
----@field green? string Green accent
----@field red? string Red accent
----@field yellow? string Yellow accent
----@field orange? string Orange accent
----@field purple? string Purple / preprocessor / macro accent
----@field magenta? string Magenta accent
----@field error? string Diagnostic error color
----@field warn? string Diagnostic warning color
----@field hint? string Diagnostic hint color
----@field info? string Diagnostic info color
----@field git_add? string Git added lines
----@field git_change? string Git changed lines
----@field git_delete? string Git deleted lines
----@field none? string Transparent / "NONE"
+---@field mg? string Mid-ground: dim text, line numbers, punctuation
+---@field comment? string Comments
+---@field keyword? string Keywords and flow control
+---@field operator? string Operators
+---@field string? string String literals
+---@field literal? string Numeric, char, and bool literals
+---@field type? string Type names
+---@field macro? string Macros, attributes, preprocessor
+---@field error? string Diagnostic error
+---@field warning? string Diagnostic warning
+---@field hint? string Diagnostic hint
+---@field info? string Diagnostic info
+---@field blue? string Links, directories
+---@field green? string Positive UI states
+---@field orange? string Search highlight
+---@field magenta? string Debug
+---@field git_add? string
+---@field git_change? string
+---@field git_delete? string
+---@field none? string
 
 --- Default configuration (all palette defaults).
 --- Every field maps directly to a named color in the palette.
