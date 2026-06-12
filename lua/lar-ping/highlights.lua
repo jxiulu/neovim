@@ -236,7 +236,7 @@ M.set = function(c)
 	hl(0, "@lsp.type.unresolvedReference",{ fg = c.fg, undercurl = true, sp = c.error })
 
 	-- Defer to treesitter for these token types
-    hl(0, "@lsp.type", { link = "@type"} )
+    hl(0, "@lsp.type", {} )
 	hl(0, "@lsp.type.interface",      { fg = c.type, italic = true })
 	hl(0, "@lsp.type.parameter",      {})
 	hl(0, "@lsp.type.property",       {})
@@ -254,9 +254,11 @@ M.set = function(c)
 	hl(0, "@lsp.type.selfTypeKeyword",{})
 	hl(0, "@lsp.type.selfKeyword",    {})
 	hl(0, "@lsp.type.generic",        {})
+    hl(0, "@lsp.type.lifetime", { link = "@type" })
 
 	hl(0, "@lsp.mod.deprecated", { strikethrough = true })
     hl(0, "@lsp.mod.attribute", { link = "@attribute" })
+    hl(0, "@lsp.mod.callable", { link = "@Function" })
     hl(0, "@lsp.typemod.string", { link = "@string" })
 	hl(0, "@lsp.mod.readonly",   {})
 

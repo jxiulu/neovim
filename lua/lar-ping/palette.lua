@@ -2,24 +2,24 @@ local M = {}
 
 M.defaults = {
   -- Backgrounds
-  bg          = "#242424",
-  bg_darker   = "#242424",
-  bg_float    = "#343434",
-  bg_visual   = "#575757",
-  bg_cursor   = "#707070",
+  bg          = "#303232",
+  bg_darker   = "#272929",
+  bg_float    = "#272929",
+  bg_visual   = "#404141",
+  bg_cursor   = "#404141",
 
   -- Foreground
-  fg          = "#f5f5f5",
-  mg          = "#b0b0b0",
+  fg          = "#D6DEDE",
+  mg          = "#AEB8B8",
 
   -- Syntax
   comment     = "#cc8c3c",
-  keyword     = "#b0b0b0",
-  operator    = "#ffdd33",
-  string      = "#7eed3b",
-  literal     = "#d19a66",
-  type        = "#52deeb",
-  macro       = "#c36dde",
+  keyword     = "#AEB8B8",
+  operator    = "#EEEA38",
+  string      = "#77DB11",
+  literal     = "#E5AC6C",
+  type        = "#41C9D7",
+  macro       = "#DB6ECB",
 
   -- Diagnostics
   error       = "#f43841",
@@ -29,12 +29,12 @@ M.defaults = {
 
   -- UI Accents
   blue        = "#519fdf",
-  green       = "#73d936",
-  orange      = "#c18a56",
-  magenta     = "#d16d9e",
+  green       = "#77DB11",
+  orange      = "#cc8c3c",
+  magenta     = "#DB6ECB",
 
   -- Git
-  git_add     = "#73d936",
+  git_add     = "#77DB11",
   git_change  = "#ffdd33",
   git_delete  = "#f43841",
 
