@@ -10,90 +10,102 @@ vim.diagnostic.config({
 	severity_sort = true,
 	float = {
 		border = "rounded",
-		source = "always",
+		source = true,
 		header = "",
 		prefix = "",
 	},
 })
 
-vim.api.nvim_create_autocmd("CursorHold", {
-	group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
-	callback = function()
-		vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
-	end,
-})
+vim.keymap.set("n", "<leader>cd", function()
+	vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+end, { desc = "Line Diagnostics" })
 
 -- LANGUAGE-SPECIFIC SETTINGS
 
--- Disable treesitter for help files (nvim-treesitter vimdoc query bug on 0.12)
--- vim.api.nvim_create_autocmd("FileType", {
--- 	pattern = "help",
--- 	callback = function() vim.treesitter.stop() end,
--- })
---
 local function map(keys, cmd, desc)
 	vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
 end
 
--- Rust: cd to project root on enter
-vim.api.nvim_create_autocmd("BufEnter", {
-	pattern = {"*.rs", "Cargo.toml"},
-	callback = function()
-		local root = vim.fs.root(0, "Cargo.toml")
-		if root then
-			vim.cmd.lcd(root)
-		end
-	end,
-})
+-- Run a shell command in a toggleterm terminal instead of blocking with :!
+local function run(cmd)
+	return function()
+		vim.cmd({ cmd = "TermExec", args = { "cmd=" .. cmd } })
+	end
+end
 
--- Rust
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "rust",
-	callback = function()
-		vim.opt_local.colorcolumn = "100"
-		map("<leader>cb", ":!cargo build<CR>", "Cargo Build")
-		map("<leader>cr", ":!cargo run<CR>", "Cargo Run")
-		map("<leader>ct", ":!cargo test<CR>", "Cargo Test")
-		map("<leader>cc", ":!cargo clippy<CR>", "Cargo Clippy")
-	end,
-})
+-- cd to project root when a buffer of this type is opened
+local function lcd_root(markers)
+	local root = vim.fs.root(0, markers)
+	if root and vim.fn.getcwd(0) ~= root then
+		vim.cmd.lcd(vim.fn.fnameescape(root))
+	end
+end
+
+local augroup = vim.api.nvim_create_augroup("language_settings", { clear = true })
+
+local function ft(pattern, callback)
+	vim.api.nvim_create_autocmd("FileType", { group = augroup, pattern = pattern, callback = callback })
+end
+
+-- C / C++
+ft({ "c", "cpp" }, function()
+	lcd_root({ "Makefile", "makefile", "GNUmakefile", "compile_commands.json", ".git" })
+	vim.opt_local.colorcolumn = "80"
+	vim.opt_local.path:append({ ".,**", "include", "inc" })
+	map("<leader>cb", run("make"), "Make Build")
+	map("<leader>cr", run("make run"), "Make Run")
+	map("<leader>ct", run("make test"), "Make Test")
+	map("<leader>cc", run("make clean"), "Make Clean")
+end)
+
+-- Rust (also active in Cargo.toml and other toml files inside a cargo project)
+local function rust_maps()
+	lcd_root("Cargo.toml")
+	map("<leader>cb", run("cargo build"), "Cargo Build")
+	map("<leader>cr", run("cargo run"), "Cargo Run")
+	map("<leader>ct", run("cargo test"), "Cargo Test")
+	map("<leader>cc", run("cargo clippy"), "Cargo Clippy")
+end
+
+ft("rust", function()
+	vim.opt_local.colorcolumn = "100"
+	rust_maps()
+end)
+
+ft("toml", function(args)
+	local name = vim.fs.basename(vim.api.nvim_buf_get_name(args.buf))
+	if name == "Cargo.toml" or name == "Cargo.lock" or vim.fs.root(args.buf, "Cargo.toml") then
+		rust_maps()
+	end
+end)
 
 -- Zig
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "zig",
-	callback = function()
-		vim.opt_local.colorcolumn = "100"
-		map("<leader>cb", ":!zig build<CR>", "Zig Build")
-		map("<leader>cr", ":!zig build run<CR>", "Zig Run")
-		map("<leader>ct", ":!zig build test<CR>", "Zig Test")
-	end,
-})
+ft("zig", function()
+	vim.opt_local.colorcolumn = "100"
+	map("<leader>cb", run("zig build"), "Zig Build")
+	map("<leader>cr", run("zig build run"), "Zig Run")
+	map("<leader>ct", run("zig build test"), "Zig Test")
+end)
 
 -- Java
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "java",
-	callback = function()
-		vim.opt_local.colorcolumn = "120"
-		map("<leader>cb", ":!javac %<CR>", "Compile File")
-		map("<leader>cr", ":!java %:r<CR>", "Run File")
-	end,
-})
+ft("java", function()
+	vim.opt_local.colorcolumn = "120"
+	map("<leader>cb", run("javac " .. vim.fn.expand("%")), "Compile File")
+	map("<leader>cr", run("java " .. vim.fn.expand("%:r")), "Run File")
+end)
 
 -- Markdown
-vim.api.nvim_create_autocmd("FileType", {
-	pattern = "markdown",
-	callback = function()
-		vim.opt_local.spell = true
-		vim.opt_local.conceallevel = 2
-		vim.opt_local.colorcolumn = ""
-	end,
-})
+ft("markdown", function()
+	vim.opt_local.spell = true
+	vim.opt_local.conceallevel = 2
+	vim.opt_local.colorcolumn = ""
+end)
 
 -- =============================================================================
 -- THEME PERSISTENCE
 -- =============================================================================
 
-local theme_file = vim.fn.stdpath("config") .. "/last_theme.txt"
+local theme_file = vim.fn.stdpath("state") .. "/last_theme.txt"
 
 vim.api.nvim_create_autocmd("VimLeavePre", {
 	callback = function()
@@ -108,14 +120,13 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 vim.api.nvim_create_autocmd("VimEnter", {
 	callback = function()
 		local file = io.open(theme_file, "r")
-		if file then
-			local saved_theme = file:read("*line")
-			file:close()
-			if saved_theme and saved_theme ~= "" then
-				vim.schedule(function()
-					pcall(vim.cmd.colorscheme, saved_theme)
-				end)
-			end
+		if not file then
+			return
+		end
+		local saved_theme = file:read("*line")
+		file:close()
+		if saved_theme and saved_theme ~= "" and saved_theme ~= vim.g.colors_name then
+			pcall(vim.cmd.colorscheme, saved_theme)
 		end
 	end,
 })

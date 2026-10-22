@@ -12,6 +12,7 @@ return {
 				"c",
 				"cpp",
 				"java",
+                "ocaml",
 				"rust",
 				"zig",
 				"lua",

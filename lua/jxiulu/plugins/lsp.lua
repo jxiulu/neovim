@@ -31,15 +31,51 @@ return {
 			})
 
 			-- Overrides on top of nvim-lspconfig's built-in lsp/*.lua defaults
+			local clangd_bin = vim.fn.executable("/opt/homebrew/opt/llvm/bin/clangd") == 1
+					and "/opt/homebrew/opt/llvm/bin/clangd"
+				or "clangd"
+
 			vim.lsp.config("clangd", {
 				cmd = {
-					"clangd",
+					clangd_bin,
 					"--header-insertion=never",
 					"--completion-style=detailed",
 					"--background-index",
 					"--offset-encoding=utf-16",
 					"--function-arg-placeholders=false",
+					"--query-driver=/usr/bin/gcc,/usr/bin/clang,/opt/homebrew/opt/llvm/bin/clang,/opt/homebrew/bin/gcc*,/usr/bin/*gcc*,/usr/bin/*clang*",
 				},
+				root_markers = {
+					".clangd",
+					".clang-tidy",
+					".clang-format",
+					"compile_commands.json",
+					"compile_flags.txt",
+					"configure.ac",
+					"Makefile",
+					"makefile",
+					"GNUmakefile",
+					".git",
+				},
+				before_init = function(params, config)
+					local root = (type(params.rootUri) == "string" and vim.uri_to_fname(params.rootUri))
+						or config.root_dir
+						or vim.fn.getcwd()
+					params.initializationOptions = params.initializationOptions or {}
+					local fallback = params.initializationOptions.fallbackFlags or {}
+					if root then
+						local default_dirs = {
+							"-I" .. root,
+							"-I" .. root .. "/include",
+							"-I" .. root .. "/inc",
+							"-I" .. root .. "/src",
+						}
+						for _, flag in ipairs(default_dirs) do
+							table.insert(fallback, flag)
+						end
+					end
+					params.initializationOptions.fallbackFlags = fallback
+				end,
 			})
 
 			vim.lsp.config("rust_analyzer", {
@@ -62,8 +98,14 @@ return {
 				},
 			})
 
+            vim.lsp.config("ocamllsp", {
+                cmd = { "opam", "exec",  "--", "ocamllsp" },
+                filetypes = { "ocaml", "ocamlinterace" },
+                root_markers = { "dune-project", ".git", "*.opam"}
+            })
+
 			require("mason-lspconfig").setup({
-				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman", "zls" },
+				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman", "zls", "ocamllsp" },
 			})
 		end,
 	},

@@ -33,19 +33,27 @@ opt.expandtab = true
 opt.colorcolumn = "81"
 opt.textwidth = 0
 
--- Fill entire window with colorscheme background
-vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme" }, {
-	callback = function()
-		local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
-		if not normal.bg then
-			return
-		end
-		io.write(string.format("\027]11;#%06x\027\\", normal.bg))
-	end,
-})
+-- Fill entire window with colorscheme background (OSC 11), reset on exit
+local function osc(seq)
+	io.stdout:write(seq)
+	io.stdout:flush()
+end
 
-vim.api.nvim_create_autocmd("UILeave", {
+local function set_term_bg()
+	local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+	if normal.bg then
+		osc(string.format("\027]11;#%06x\027\\", normal.bg))
+	end
+end
+
+local group = vim.api.nvim_create_augroup("term_bg", { clear = true })
+vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme", "VimResume" }, {
+	group = group,
+	callback = set_term_bg,
+})
+vim.api.nvim_create_autocmd({ "VimLeave", "VimSuspend" }, {
+	group = group,
 	callback = function()
-		io.write("\027]111\027\\")
+		osc("\027]111\027\\")
 	end,
 })
