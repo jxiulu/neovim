@@ -33,11 +33,15 @@ opt.expandtab = true
 opt.colorcolumn = "81"
 opt.textwidth = 0
 
--- Fill entire window with colorscheme background (OSC 11), reset on exit
+-- Fill entire window with colorscheme background (OSC 11), restore on exit.
+-- Some terminals (Terminal.app) ignore OSC 111, so remember the original
+-- background by querying it and put it back explicitly.
 local function osc(seq)
 	io.stdout:write(seq)
 	io.stdout:flush()
 end
+
+local original_bg
 
 local function set_term_bg()
 	local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
@@ -46,14 +50,33 @@ local function set_term_bg()
 	end
 end
 
+local function restore_term_bg()
+	if original_bg then
+		osc(string.format("\027]11;%s\027\\", original_bg))
+	end
+	osc("\027]111\027\\\027[0m")
+end
+
 local group = vim.api.nvim_create_augroup("term_bg", { clear = true })
-vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme", "VimResume" }, {
+
+vim.api.nvim_create_autocmd("TermResponse", {
 	group = group,
-	callback = set_term_bg,
-})
-vim.api.nvim_create_autocmd({ "VimLeave", "VimSuspend" }, {
-	group = group,
-	callback = function()
-		osc("\027]111\027\\")
+	callback = function(ev)
+		local seq = type(ev.data) == "table" and ev.data.sequence or vim.v.termresponse
+		local r, g, b = (seq or ""):match("\027%]11;rgb:(%x%x)%x*/(%x%x)%x*/(%x%x)%x*")
+		if r and not original_bg then
+			original_bg = string.format("#%s%s%s", r, g, b)
+		end
 	end,
 })
+
+vim.api.nvim_create_autocmd("UIEnter", {
+	group = group,
+	once = true,
+	callback = function()
+		osc("\027]11;?\027\\")
+		vim.defer_fn(set_term_bg, 100) -- let the reply arrive before overwriting
+	end,
+})
+vim.api.nvim_create_autocmd({ "ColorScheme", "VimResume" }, { group = group, callback = set_term_bg })
+vim.api.nvim_create_autocmd({ "VimLeave", "VimSuspend" }, { group = group, callback = restore_term_bg })

@@ -35,12 +35,14 @@ local M = {}
 --- Every field maps directly to a named color in the palette.
 M.config = {}
 
---- Merge user opts with defaults and return the resolved color table.
+--- Merge user opts onto the palette matching vim.o.background and return
+--- the resolved color table.
 ---@param opts LarPingConfig
 ---@return table
 local function resolve(opts)
   local palette = require("lar-ping.palette")
-  return vim.tbl_deep_extend("force", palette.defaults, opts or {})
+  local base = vim.o.background == "light" and palette.light or palette.dark
+  return vim.tbl_deep_extend("force", base, opts or {})
 end
 
 --- Apply the colorscheme.
@@ -53,7 +55,6 @@ M.load = function(opts)
     vim.cmd("syntax reset")
   end
 
-  vim.o.background     = "dark"
   vim.o.termguicolors  = true
   vim.g.colors_name    = "lar-ping"
 
@@ -66,6 +67,18 @@ end
 ---@param opts LarPingConfig?
 M.setup = function(opts)
   M.config = opts or {}
+
+  -- Re-apply the theme whenever 'background' flips between light and dark.
+  vim.api.nvim_create_autocmd("OptionSet", {
+    group = vim.api.nvim_create_augroup("lar_ping_background", { clear = true }),
+    pattern = "background",
+    callback = function()
+      if vim.g.colors_name == "lar-ping" then
+        M.load(M.config)
+      end
+    end,
+  })
+
   -- When setup() is called directly (not via lazy colorscheme loading),
   -- apply immediately.
   M.load(M.config)

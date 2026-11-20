@@ -315,14 +315,15 @@ M.set = function(c)
 	hl(0, "TelescopePromptPrefix",   { fg = c.mg })
 
 	-- =========================================================================
-	-- Plugin: nvim-cmp
+	-- Plugin: blink.cmp
 	-- =========================================================================
-	hl(0, "CmpItemAbbr",           { fg = c.fg })
-	hl(0, "CmpItemAbbrDeprecated", { fg = c.mg, strikethrough = true })
-	hl(0, "CmpItemAbbrMatch",      { fg = c.mg })
-	hl(0, "CmpItemAbbrMatchFuzzy", { fg = c.orange })
-	hl(0, "CmpItemKind",           { fg = c.type })
-	hl(0, "CmpItemMenu",           { fg = c.mg })
+	hl(0, "BlinkCmpLabel",           { fg = c.fg })
+	hl(0, "BlinkCmpLabelDeprecated", { fg = c.mg, strikethrough = true })
+	hl(0, "BlinkCmpLabelMatch",      { fg = c.mg })
+	hl(0, "BlinkCmpKind",            { fg = c.type })
+	hl(0, "BlinkCmpLabelDetail",     { fg = c.mg })
+	hl(0, "BlinkCmpLabelDescription",{ fg = c.mg })
+	hl(0, "BlinkCmpSource",          { fg = c.mg })
 
 	-- =========================================================================
 	-- Plugin: neo-tree

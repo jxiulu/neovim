@@ -23,6 +23,7 @@ return {
 				"json",
 				"toml",
 				"bash",
+				"wgsl",
 			}
 
 			treesitter.setup({

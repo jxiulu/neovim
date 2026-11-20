@@ -1,3 +1,14 @@
+vim.lsp.log.set_level(vim.log.levels.ERROR)
+-- delete the lsp log if it gets too big
+vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function()
+        local f = vim.lsp.log.get_filename()
+        local st = vim.uv.fs_stat(f)
+        if st and st.size > 5 * 1024 * 1024 then os.remove(f) end
+    end,
+})
+
+-- code stuff
 vim.api.nvim_create_autocmd("LspAttach", {
 	callback = function(args)
 		local bufnr = args.buf
@@ -23,11 +34,11 @@ return {
 
 	{
 		"mason-org/mason-lspconfig.nvim",
-		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig", "hrsh7th/cmp-nvim-lsp" },
+		dependencies = { "williamboman/mason.nvim", "neovim/nvim-lspconfig", "saghen/blink.cmp" },
 		config = function()
-			-- Global capabilities (cmp completions)
+			-- Global capabilities (blink.cmp completions)
 			vim.lsp.config("*", {
-				capabilities = require("cmp_nvim_lsp").default_capabilities(),
+				capabilities = require("blink.cmp").get_lsp_capabilities(),
 			})
 
 			-- Overrides on top of nvim-lspconfig's built-in lsp/*.lua defaults
@@ -98,11 +109,11 @@ return {
 				},
 			})
 
-            vim.lsp.config("ocamllsp", {
-                cmd = { "opam", "exec",  "--", "ocamllsp" },
-                filetypes = { "ocaml", "ocamlinterace" },
-                root_markers = { "dune-project", ".git", "*.opam"}
-            })
+			vim.lsp.config("ocamllsp", {
+				cmd = { "opam", "exec", "--", "ocamllsp" },
+				filetypes = { "ocaml", "ocamlinterace" },
+				root_markers = { "dune-project", ".git", "*.opam" },
+			})
 
 			require("mason-lspconfig").setup({
 				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman", "zls", "ocamllsp" },

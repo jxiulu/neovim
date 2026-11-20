@@ -1,6 +1,4 @@
--- =============================================================================
--- DIAGNOSTICS
--- =============================================================================
+-- diagnostics
 
 vim.diagnostic.config({
 	virtual_text = false,
@@ -16,11 +14,14 @@ vim.diagnostic.config({
 	},
 })
 
-vim.keymap.set("n", "<leader>cd", function()
-	vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
-end, { desc = "Line Diagnostics" })
+vim.api.nvim_create_autocmd("CursorHold", {
+	group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
+	callback = function()
+		vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+	end,
+})
 
--- LANGUAGE-SPECIFIC SETTINGS
+-- language-specific autocmds
 
 local function map(keys, cmd, desc)
 	vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
@@ -101,9 +102,7 @@ ft("markdown", function()
 	vim.opt_local.colorcolumn = ""
 end)
 
--- =============================================================================
--- THEME PERSISTENCE
--- =============================================================================
+-- theme persistence
 
 local theme_file = vim.fn.stdpath("state") .. "/last_theme.txt"
 
