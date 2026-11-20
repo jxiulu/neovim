@@ -16,16 +16,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 			vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, silent = true, noremap = true, desc = desc })
 		end
 
-		map("n", "K", vim.lsp.buf.hover, "LSP Hover")
+		-- K, [d, ]d, grn, gra, grr, gri, grt, gO are Neovim defaults
 		map("n", "<leader>cR", vim.lsp.buf.rename, "Rename Symbol")
 		map("n", "<leader>ca", vim.lsp.buf.code_action, "Code Action")
-		map("n", "[d", vim.diagnostic.goto_prev, "Prev Diagnostic")
-		map("n", "]d", vim.diagnostic.goto_next, "Next Diagnostic")
-
-		local client = vim.lsp.get_client_by_id(args.data.client_id)
-		if client and vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
-			vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
-		end
 	end,
 })
 
@@ -52,7 +45,6 @@ return {
 					"--header-insertion=never",
 					"--completion-style=detailed",
 					"--background-index",
-					"--offset-encoding=utf-16",
 					"--function-arg-placeholders=false",
 					"--query-driver=/usr/bin/gcc,/usr/bin/clang,/opt/homebrew/opt/llvm/bin/clang,/opt/homebrew/bin/gcc*,/usr/bin/*gcc*,/usr/bin/*clang*",
 				},
@@ -92,10 +84,8 @@ return {
 			vim.lsp.config("rust_analyzer", {
 				settings = {
 					["rust-analyzer"] = {
-						checkOnSave = true,
 						check = { command = "clippy" },
 						cargo = { allFeatures = true },
-						procMacro = { enable = true },
 					},
 				},
 			})
@@ -111,15 +101,12 @@ return {
 
 			vim.lsp.config("ocamllsp", {
 				cmd = { "opam", "exec", "--", "ocamllsp" },
-				filetypes = { "ocaml", "ocamlinterace" },
-				root_markers = { "dune-project", ".git", "*.opam" },
 			})
+			vim.lsp.enable("ocamllsp") -- comes from opam, not Mason, so enable it explicitly
 
 			require("mason-lspconfig").setup({
-				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman", "zls", "ocamllsp" },
+				ensure_installed = { "clangd", "rust_analyzer", "jdtls", "lua_ls", "marksman", "zls" },
 			})
 		end,
 	},
-
-	{ "neovim/nvim-lspconfig" },
 }

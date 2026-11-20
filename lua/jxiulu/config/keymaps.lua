@@ -24,17 +24,3 @@ vim.api.nvim_create_user_command("Config", function()
 	vim.cmd("cd ~/.config/nvim")
 	vim.cmd("e init.lua")
 end, {})
-
--- Which-key groups
-require("which-key").add({
-	{ "<leader>u", group = "UI/Toggles" },
-	{ "<leader>w", group = "Window" },
-	{ "<leader>t", group = "Tab" },
-	{ "<leader>f", group = "Find" },
-	{ "<leader>s", group = "Search" },
-	{ "<leader>g", group = "Git" },
-	{ "<leader>c", group = "Code" },
-	{ "<leader>d", group = "Debug" },
-	{ "<leader>x", group = "Trouble" },
-{ "<leader>o", group = "Oil" },
-})

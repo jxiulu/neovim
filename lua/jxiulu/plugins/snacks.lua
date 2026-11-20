@@ -29,10 +29,15 @@ return {
 			-- LSP pickers
 			{ "gd", function() Snacks.picker.lsp_definitions() end, desc = "Goto Definition" },
 			{ "gD", function() Snacks.picker.lsp_declarations() end, desc = "Goto Declaration" },
-			{ "gr", function() Snacks.picker.lsp_references() end, desc = "References" },
-			{ "gI", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
+			{ "grr", function() Snacks.picker.lsp_references() end, desc = "References" },
+			{ "gri", function() Snacks.picker.lsp_implementations() end, desc = "Goto Implementation" },
 			{ "gy", function() Snacks.picker.lsp_type_definitions() end, desc = "Goto Type Definition" },
 			{ "<leader>ss", function() Snacks.picker.lsp_symbols() end, desc = "LSP Symbols" },
+
+			-- Diagnostics
+			{ "<leader>xx", function() Snacks.picker.diagnostics() end, desc = "Diagnostics" },
+			{ "<leader>xX", function() Snacks.picker.diagnostics_buffer() end, desc = "Buffer Diagnostics" },
+			{ "<leader>xs", function() Snacks.picker.lsp_symbols() end, desc = "Symbols" },
 
 			-- Git
 			{ "<leader>gs", function() Snacks.picker.git_status() end, desc = "Git Status" },

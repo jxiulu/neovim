@@ -1,7 +1,7 @@
 return {
 	{
 		"cbochs/grapple.nvim",
-		dependencies = { "nvim-tree/nvim-web-devicons" },
+		dependencies = { "echasnovski/mini.icons" },
 		opts = { scope = "git_branch" },
 		keys = {
 			{ "<leader>m", "<cmd>Grapple toggle<cr>", desc = "Grapple Toggle" },

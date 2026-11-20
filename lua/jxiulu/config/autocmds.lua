@@ -1,13 +1,8 @@
 -- diagnostics
 
 vim.diagnostic.config({
-	virtual_text = false,
-	signs = true,
-	underline = true,
-	update_in_insert = false,
 	severity_sort = true,
 	float = {
-		border = "rounded",
 		source = true,
 		header = "",
 		prefix = "",
@@ -17,30 +12,49 @@ vim.diagnostic.config({
 vim.api.nvim_create_autocmd("CursorHold", {
 	group = vim.api.nvim_create_augroup("float_diagnostic", { clear = true }),
 	callback = function()
-		vim.diagnostic.open_float(nil, { focus = false, scope = "cursor" })
+		vim.diagnostic.open_float(nil, { focus = false, scope = "line" })
 	end,
 })
 
 -- language-specific autocmds
-
 local function map(keys, cmd, desc)
 	vim.keymap.set("n", keys, cmd, { buffer = true, silent = true, desc = desc })
 end
 
--- Run a shell command in a toggleterm terminal instead of blocking with :!
+-- Run a shell command in a bottom terminal instead of blocking with :!
+-- (press q in the terminal to hide it)
 local function run(cmd)
 	return function()
-		vim.cmd({ cmd = "TermExec", args = { "cmd=" .. cmd } })
+		Snacks.terminal.open(cmd, { interactive = false, win = { position = "bottom" } })
 	end
 end
 
--- cd to project root when a buffer of this type is opened
-local function lcd_root(markers)
-	local root = vim.fs.root(0, markers)
-	if root and vim.fn.getcwd(0) ~= root then
-		vim.cmd.lcd(vim.fn.fnameescape(root))
-	end
-end
+-- cd to the project root of whatever file is being edited.
+-- The nearest directory containing any of these markers wins.
+local root_markers = {
+	".git",
+	"Makefile",
+	"makefile",
+	"GNUmakefile",
+	"CMakeLists.txt",
+	"compile_commands.json",
+	"Cargo.toml",
+	"build.zig",
+	"dune-project",
+}
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	group = vim.api.nvim_create_augroup("project_root", { clear = true }),
+	callback = function(args)
+		if vim.bo[args.buf].buftype ~= "" then
+			return
+		end
+		local root = vim.fs.root(args.buf, { root_markers })
+		if root and vim.fn.getcwd() ~= root then
+			vim.cmd.cd(vim.fn.fnameescape(root))
+		end
+	end,
+})
 
 local augroup = vim.api.nvim_create_augroup("language_settings", { clear = true })
 
@@ -50,7 +64,6 @@ end
 
 -- C / C++
 ft({ "c", "cpp" }, function()
-	lcd_root({ "Makefile", "makefile", "GNUmakefile", "compile_commands.json", ".git" })
 	vim.opt_local.colorcolumn = "80"
 	vim.opt_local.path:append({ ".,**", "include", "inc" })
 	map("<leader>cb", run("make"), "Make Build")
@@ -61,7 +74,6 @@ end)
 
 -- Rust (also active in Cargo.toml and other toml files inside a cargo project)
 local function rust_maps()
-	lcd_root("Cargo.toml")
 	map("<leader>cb", run("cargo build"), "Cargo Build")
 	map("<leader>cr", run("cargo run"), "Cargo Run")
 	map("<leader>ct", run("cargo test"), "Cargo Test")

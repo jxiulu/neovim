@@ -3,11 +3,8 @@ return {
 		"nvim-treesitter/nvim-treesitter",
 		branch = "main",
 		lazy = false,
-		build = function()
-			vim.cmd.TSUpdate()
-		end,
+		build = ":TSUpdate",
 		config = function()
-			local treesitter = require("nvim-treesitter")
 			local parsers = {
 				"c",
 				"cpp",
@@ -26,15 +23,11 @@ return {
 				"wgsl",
 			}
 
-			treesitter.setup({
-				install_dir = vim.fn.stdpath("data") .. "/site",
-			})
-
-			require("nvim-treesitter.install").install(parsers)
+			require("nvim-treesitter").install(parsers)
 
 			vim.api.nvim_create_autocmd("FileType", {
 				group = vim.api.nvim_create_augroup("treesitter_start", { clear = true }),
-				pattern = parsers,
+				pattern = "*", -- parser names differ from filetypes (vimdoc = help, bash = sh)
 				callback = function()
 					if pcall(vim.treesitter.start) then
 						vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
